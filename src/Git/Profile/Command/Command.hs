@@ -25,3 +25,4 @@ runCommand (SwitchCmd SwitchArguments {..}) = do
         Nothing -> throwString $ "Profile not found: " <> T.unpack profile
         Just a' -> return a'
     switchProfile config
+    liftIO . putStrLn $ "GitProfile is switched to " <> T.unpack profile
