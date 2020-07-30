@@ -11,7 +11,7 @@ import           Options.Applicative
 
 
 parseCommand :: IO Command
-parseCommand = execParser commandParserInfo
+parseCommand = customExecParser (prefs showHelpOnEmpty) commandParserInfo
 
 withInfo :: Parser a -> String -> ParserInfo a
 withInfo p = info (helper <*> p) . progDesc
