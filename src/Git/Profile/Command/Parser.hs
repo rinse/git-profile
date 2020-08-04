@@ -1,4 +1,6 @@
+{-# LANGUAGE ApplicativeDo     #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 module Git.Profile.Command.Parser where
 
 import           Control.Monad.Writer.Strict
@@ -42,9 +44,9 @@ switchArgumentsParserInfo :: ParserInfo SwitchArguments
 switchArgumentsParserInfo = switchArgumentsParser `withInfo` "Switches a git profile."
 
 switchArgumentsParser :: Parser SwitchArguments
-switchArgumentsParser = SwitchArguments
-    <$> strArgument (execWriter $ do
-            tell $ metavar "PROFILE"
-            tell . completer . mkCompleter $ \arg ->
-                filter (arg `isPrefixOf`) . fmap T.unpack . M.keys <$> gitProfile
-        )
+switchArgumentsParser = do
+    profile <- strArgument . execWriter $ do
+        tell $ metavar "PROFILE"
+        tell . completer . mkCompleter $ \arg ->
+            filter (arg `isPrefixOf`) . fmap T.unpack . M.keys <$> gitProfile
+    pure SwitchArguments {..}
