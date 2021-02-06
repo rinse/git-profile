@@ -37,7 +37,7 @@ Success (SwitchArguments {profile = "profile"})
 >>> execParserPure defaultPrefs switchArgumentsParserInfo []
 Failure (ParserFailure (Missing: PROFILE
 <BLANKLINE>
-Usage: <program> PROFILE [--path PROFILE_PATH]
+Usage: <program> PROFILE
   Switches a git profile.,ExitFailure 1,80))
 -}
 switchArgumentsParserInfo :: ParserInfo SwitchArguments
