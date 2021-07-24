@@ -2,19 +2,20 @@
 {-# LANGUAGE OverloadedStrings    #-}
 module Git.Profile.SwitchProfile where
 
-import           Control.Exception.Safe (throwString)
-import           Control.Monad
-import           Control.Monad.IO.Class
+import           Control.Exception.Safe as E
 import qualified Data.Map               as M
 import           Git.Profile.GitProfile
-import           Turtle
-
+import           RIO
+import qualified Turtle
 
 switchProfile :: MonadIO m => GitConfigs -> m ()
-switchProfile config = sh $ do
-    exitCode <- proc "git" ["rev-parse"] stdin
+switchProfile gitConfigs = Turtle.sh $ do
+    exitCode <- Turtle.proc "git" ["rev-parse"] Turtle.stdin
     unless (exitCode == ExitSuccess) $
-        throwString "The current directory is not under git control."
-    void . flip M.traverseWithKey config $ \category m ->
-        flip M.traverseWithKey m $ \k v ->
-            proc "git" ["config", "--local", category <> "." <> k, v] stdin
+        E.throwString "The current directory is not under git control."
+    flip traverseWithKey_ gitConfigs $ \configCategory configMap ->
+        flip traverseWithKey_ configMap $ \k v ->
+            Turtle.proc "git" ["config", "--local", configCategory <> "." <> k, v] Turtle.stdin
+
+traverseWithKey_ :: Applicative f => (k -> a -> f b) -> Map k a -> f ()
+traverseWithKey_ = (fmap . fmap) void M.traverseWithKey
