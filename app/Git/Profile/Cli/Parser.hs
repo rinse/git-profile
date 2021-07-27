@@ -1,19 +1,16 @@
 {-# LANGUAGE ApplicativeDo     #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
-module Git.Profile.Command.Parser where
+module Git.Profile.Cli.Parser (parseCommandLineOptions, commandParserInfo, switchArgumentsParserInfo) where
 
+import           Control.Applicative
 import           Control.Monad.Writer.Strict
-import           Data.List
-import qualified Data.Map.Strict             as M
-import qualified Data.Text                   as T
-import           Git.Profile.Command.Command
-import           Git.Profile.GitProfile      (gitProfile)
+import           Git.Profile.Cli.CommandLineOptions
 import           Options.Applicative
+import           RIO
 
 
-parseCommand :: IO Command
-parseCommand = customExecParser (prefs showHelpOnEmpty) commandParserInfo
+parseCommandLineOptions :: IO CommandLineOptions
+parseCommandLineOptions = customExecParser (prefs showHelpOnEmpty) commandParserInfo
 
 withInfo :: Parser a -> String -> ParserInfo a
 withInfo p = info (helper <*> p) . progDesc
@@ -22,10 +19,10 @@ withInfo p = info (helper <*> p) . progDesc
 >>> execParserPure defaultPrefs commandParserInfo ["switch", "sample"]
 Success (SwitchCmd (SwitchArguments {profile = "sample"}))
 -}
-commandParserInfo :: ParserInfo Command
+commandParserInfo :: ParserInfo CommandLineOptions
 commandParserInfo = commandParser `withInfo` "Commits a command. See each commands for details."
 
-commandParser :: Parser Command
+commandParser :: Parser CommandLineOptions
 commandParser = subparser modSwitch
     where
     modSwitch = command "switch" $ SwitchCmd <$> switchArgumentsParserInfo
@@ -47,6 +44,8 @@ switchArgumentsParser :: Parser SwitchArguments
 switchArgumentsParser = do
     profile <- strArgument . execWriter $ do
         tell $ metavar "PROFILE"
-        tell . completer . mkCompleter $ \arg ->
-            filter (arg `isPrefixOf`) . fmap T.unpack . M.keys <$> gitProfile
-    pure SwitchArguments {..}
+    profileFilePath <- optional . strOption . execWriter $ do
+        tell $ long "profile-file-path"
+        tell $ help "A path to a profile file. The file is a collection of profiles."
+        tell . showDefaultWith $ const "$HOME/.gitprofile"
+    pure $ SwitchArguments profile profileFilePath

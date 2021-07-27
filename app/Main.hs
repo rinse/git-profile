@@ -1,14 +1,14 @@
-module Main where
+module Main (main) where
 
-import           Control.Exception.Safe
-import           Git.Profile.Command.Command
-import           Git.Profile.Command.Parser
-import           System.Exit                 (exitFailure)
-import           System.IO                   (hPutStrLn, stderr)
+import           Git.Profile.Cli.Parser
+import           Git.Profile.Run        (runApp)
+import           RIO
+import           System.IO              (hPutStrLn)
 
 main :: IO ()
-main =
-    (parseCommand >>= runCommand)
-    `catch` \(StringException e _) -> do
-        hPutStrLn stderr e
-        exitFailure
+main = do
+    commandLineOptions <- parseCommandLineOptions
+        `catch` \(StringException e _) -> do
+            hPutStrLn stderr e
+            exitFailure
+    runApp commandLineOptions
