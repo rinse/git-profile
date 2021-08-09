@@ -2,9 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Git.Profile.App.RunSwitch (runSwitch) where
 
-import           Control.Exception.Safe     as E
 import           Control.Monad.Reader.Class
-import qualified Data.Map.Strict            as M
 import qualified Data.Text                  as T
 import           Git.Profile.App.SwitchEnv
 import           Git.Profile.GitProfile
@@ -21,9 +19,3 @@ runSwitch = do
     configs <- getGitConfigs profileName profile
     switchProfile configs
     logInfo $ "GitProfile is switched to " <> display profileName
-
-getGitConfigs :: E.MonadThrow m => T.Text -> GitProfile -> m GitConfigs
-getGitConfigs profileName profile =
-    case M.lookup profileName profile of
-        Nothing -> E.throwString $ "Profile not found: " <> T.unpack profileName
-        Just a  -> pure a

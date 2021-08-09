@@ -2,7 +2,7 @@
 module Git.Profile.GitProfileSpec (spec) where
 
 import qualified Data.ByteString        as B
-import qualified Data.Map               as M
+import qualified Data.Map.Strict        as M
 import qualified Data.Yaml.Aeson        as Y
 import           Git.Profile.GitProfile
 import           RIO

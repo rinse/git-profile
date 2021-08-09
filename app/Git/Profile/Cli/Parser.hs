@@ -1,6 +1,11 @@
 {-# LANGUAGE ApplicativeDo     #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Git.Profile.Cli.Parser (parseCommandLineOptions, commandParserInfo, switchArgumentsParserInfo) where
+module Git.Profile.Cli.Parser
+    ( parseCommandLineOptions
+    , commandParserInfo
+    , switchArgumentsParserInfo
+    , saveArgumentsParserInfo
+    ) where
 
 import           Control.Applicative
 import           Control.Monad.Writer.Strict
@@ -23,9 +28,10 @@ commandParserInfo :: ParserInfo CommandLineOptions
 commandParserInfo = commandParser `withInfo` "Commits a command. See each commands for details."
 
 commandParser :: Parser CommandLineOptions
-commandParser = subparser modSwitch
+commandParser = subparser $ modSwitch <> modSave
     where
     modSwitch = command "switch" $ SwitchCmd <$> switchArgumentsParserInfo
+    modSave = command "save" $ SaveCmd <$> saveArgumentsParserInfo
 
 {- |Parses arguments in pure contexts.
 >>> execParserPure defaultPrefs switchArgumentsParserInfo ["profile"]
@@ -41,11 +47,24 @@ switchArgumentsParserInfo :: ParserInfo SwitchArguments
 switchArgumentsParserInfo = switchArgumentsParser `withInfo` "Switches a git profile."
 
 switchArgumentsParser :: Parser SwitchArguments
-switchArgumentsParser = do
-    profile <- strArgument . execWriter $ do
-        tell $ metavar "PROFILE"
-    profileFilePath <- optional . strOption . execWriter $ do
-        tell $ long "profile-file-path"
-        tell $ help "A path to a profile file. The file is a collection of profiles."
-        tell . showDefaultWith $ const "$HOME/.gitprofile"
-    pure $ SwitchArguments profile profileFilePath
+switchArgumentsParser = SwitchArguments <$> profileParser <*> profileFilePathParser
+
+saveArgumentsParserInfo :: ParserInfo SaveArguments
+saveArgumentsParserInfo = saveArgumentsParser `withInfo` "Saves the current config to the profile"
+
+saveArgumentsParser :: Parser SaveArguments
+saveArgumentsParser = SaveArguments <$> profileParser <*> nameParser <*> profileFilePathParser
+
+profileParser :: Parser Text
+profileParser = strArgument . execWriter $ do
+    tell $ metavar "PROFILE"
+
+nameParser :: Parser Text
+nameParser = strArgument . execWriter $ do
+    tell $ metavar "NAME"
+
+profileFilePathParser :: Parser (Maybe Text)
+profileFilePathParser = optional . strOption . execWriter $ do
+    tell $ long "profile-file-path"
+    tell $ help "A path to a profile file. The file is a collection of profiles."
+    tell . showDefaultWith $ const "$HOME/.gitprofile"

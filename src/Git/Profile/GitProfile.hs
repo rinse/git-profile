@@ -6,10 +6,13 @@ module Git.Profile.GitProfile
     , ConfigCategory
     , envOrDefaultGitProfilePath
     , loadGitProfile
+    , writeGitProfile
+    , getGitConfigs
     ) where
 
+import           Control.Exception.Safe as E
 import           Control.Monad.IO.Class
-import qualified Data.Map               as M
+import qualified Data.Map.Strict        as M
 import qualified Data.Text              as T
 import qualified Data.Yaml.Aeson        as Y
 import           RIO                    ()
@@ -24,20 +27,31 @@ type GitConfigs = M.Map ConfigCategory (M.Map T.Text T.Text)
 type ConfigCategory = T.Text
 
 -- |Gets a default path to '.gitprofile'.
-defaultGitProfilePath :: MonadIO m => m String
+defaultGitProfilePath :: MonadIO m => m FilePath
 defaultGitProfilePath = do
     h <- liftIO Turtle.home
     pure . Turtle.encodeString $ h </> ".gitprofile"
 
 -- |Gets a path to the git profile from environment variables.
-envGitProfilePath :: MonadIO m => m (Maybe String)
+envGitProfilePath :: MonadIO m => m (Maybe FilePath)
 envGitProfilePath = liftIO $ lookupEnv "GIT_PROFILE_PATH"
 
 -- |Gets a path to the git profile from environment variables if possible,
 --  gets a default path otherwise.
-envOrDefaultGitProfilePath :: MonadIO m => m String
+envOrDefaultGitProfilePath :: MonadIO m => m FilePath
 envOrDefaultGitProfilePath = envGitProfilePath >>= maybe defaultGitProfilePath pure
 
 -- |Loads the specific path as 'GitProfile'.
-loadGitProfile :: MonadIO m => String -> m GitProfile
+loadGitProfile :: MonadIO m => FilePath -> m GitProfile
 loadGitProfile = Y.decodeFileThrow
+
+-- |Writes .gitprofile
+writeGitProfile :: MonadIO m => FilePath -> GitProfile -> m ()
+writeGitProfile = (fmap . fmap) liftIO Y.encodeFile
+
+-- |Gets git configs from GitProfile.
+getGitConfigs :: E.MonadThrow m => T.Text -> GitProfile -> m GitConfigs
+getGitConfigs profileName profile =
+    case M.lookup profileName profile of
+        Nothing -> E.throwString $ "Profile not found: " <> T.unpack profileName
+        Just a  -> pure a
