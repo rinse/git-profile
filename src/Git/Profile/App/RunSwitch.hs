@@ -6,10 +6,10 @@ import           Control.Exception.Safe     as E
 import           Control.Monad.Reader.Class
 import qualified Data.Map.Strict            as M
 import qualified Data.Text                  as T
-import           Git.Profile.App.SwitchEnv
-import           Git.Profile.GitProfile
-import           Git.Profile.HasClass
-import           Git.Profile.SwitchProfile
+import           Git.Profile.App.SwitchEnv  (Env)
+import           Git.Profile.GitProfile     (GitConfigs, GitProfile, loadGitProfile)
+import           Git.Profile.HasClass       (HasProfile(..), HasProfileFilePath(..))
+import           Git.Profile.SwitchProfile  (switchProfile)
 import           Lens.Micro
 import           RIO
 

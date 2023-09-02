@@ -2,7 +2,7 @@
 module Git.Profile.App.SwitchEnv (Env (..)) where
 
 import qualified Data.Text            as T
-import           Git.Profile.HasClass
+import           Git.Profile.HasClass (HasProfile (..), HasProfileFilePath (..))
 import           Lens.Micro
 import           RIO
 

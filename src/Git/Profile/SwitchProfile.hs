@@ -4,7 +4,7 @@ module Git.Profile.SwitchProfile where
 
 import           Control.Exception.Safe as E
 import qualified Data.Map               as M
-import           Git.Profile.GitProfile
+import           Git.Profile.GitProfile (GitConfigs)
 import           RIO
 import qualified Turtle
 
